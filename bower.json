@@ -1,0 +1,7 @@
+{
+    "name": "project-network-editor",
+    "dependencies": {
+	"d3": "3.*",
+	"FileSaver": "*"
+    }
+}  
