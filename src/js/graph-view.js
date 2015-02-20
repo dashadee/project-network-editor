@@ -19,7 +19,7 @@ var GraphView = function (svg) {
     this.svgG = svg.append("g").classed(this.consts.graphClass, true);
 
     // svg nodes and edges
-    //paths = [{}]
+    //paths = [{edge, sourceNodeId+targetNodeId}]
     this.paths = this.svgG.append("g").selectAll("g");
     //knots = [{}]
     this.knots = this.svgG.append("g").selectAll("g");
@@ -82,7 +82,7 @@ GraphView.prototype.updateWindow = function () {
 GraphView.prototype.updatePaths = function (edges, selectedEdge) {
     console.log(edges.toSource());
     this.paths = this.paths.data(edges, function (d) {
-        return String(d.sourceNode.nodeId) + "_" + String(d.targetNode.nodeId);
+        return String(d.sourceNode.nodeId) + "+" + String(d.targetNode.nodeId);
     });
     this.paths.style('marker-end', 'url(#marker-circle)')
             .style('marker-start', 'url(#marker-circle)')
@@ -147,11 +147,11 @@ GraphView.prototype.addNewKnots = function (graphManager) {
             })
             .on("mousedown", function (d) {
                 //thisGraph.circleMouseDown.call(thisGraph, d3.select(this), d);
-                graphManager.circleMouseDown(d3.select(this), d);
+                graphManager.circleMouseDown.call(graphManager, d3.select(this), d);
             })
             .on("mouseup", function (d) {
                 //thisGraph.circleMouseUp.call(thisGraph, d3.select(this), d);
-                graphManager.circleMouseUp(d3.select(this), d);
+                graphManager.circleMouseUp.call(graphManager, d3.select(this), d);
             })
             .call(graphManager.drag);
 
@@ -192,7 +192,7 @@ GraphView.prototype.changeTextOfNode = function (d3node, d) {
     var graphView = this,
             consts = this.consts,
             htmlEl = d3node.node();
-    
+
     d3node.selectAll("text").remove();
     var nodeBCR = htmlEl.getBoundingClientRect(),
             //curScale = nodeBCR.width/consts.nodeRadius,

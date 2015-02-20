@@ -30,11 +30,15 @@ Graph.prototype.addNode = function(title, x, y){
     return newNode;
 };
 
+Graph.prototype.changeNodeTitle = function(node, newTitle){
+    this.nodes[this.nodes.indexOf(node)].title = newTitle;
+};
+
 Graph.prototype.addEdge = function(sourceNode, targetNode) {
     var newEdge = { edgeId:this.newEdgeId++, sourceNode:sourceNode, targetNode:targetNode};
     this.edges.push(newEdge);
-    this.nodes[this.nodes.indexOf(sourceNode)].numOutEdges++;
-    this.nodes[this.nodes.indexOf(targetNode)].numInEdges++;
+    sourceNode.numOutEdges++;
+    targetNode.numInEdges++;
 };
 
 Graph.prototype.deleteNode = function(nodeToDelete){
@@ -55,8 +59,9 @@ Graph.prototype.deleteNode = function(nodeToDelete){
 Graph.prototype.deleteEdge = function(edgeToDelete) {
     var graph = this;
     //delete information about edgeToDelete from nodes
-    graph.nodes[graph.nodes.indexOf(edgeToDelete.source)].numOutEdges--;
-    graph.nodes[graph.nodes.indexOf(edgeToDelete.target)].numInEdges--;
-    //delete l edge
+    edgeToDelete.sourceNode.numOutEdges--;
+    edgeToDelete.targetNode.numInEdges--;
+     //delete l edge
     graph.edges.splice(graph.edges.indexOf(edgeToDelete), 1);
+    
 };

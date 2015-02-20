@@ -236,7 +236,7 @@ GraphManager.prototype.svgMouseDown = function () {
 // mouseup on main svg
 GraphManager.prototype.svgMouseUp = function () {
     var thisGraph = this,
-            state = thisGraph.state,
+            state = this.state,
             graph = this.graph,
             consts = this.view.consts,
             view = this.view;
@@ -247,17 +247,14 @@ GraphManager.prototype.svgMouseUp = function () {
         // clicked not dragged from svg
         // TODO: refactoring !!!!
         var xycoords = d3.mouse(view.svgG.node());
-
-        //        d = {id: thisGraph.newNodeId++, title: thisGraph.consts.defaultNodeTitle, x: xycoords[0], y: xycoords[1], numInEdges: 0, numOutEdges: 0};
-
+            // d = {id: thisGraph.newNodeId++, title: thisGraph.consts.defaultNodeTitle, x: xycoords[0], y: xycoords[1], numInEdges: 0, numOutEdges: 0};
         //thisGraph.nodes.push(d);
-
         var d = graph.addNode(consts.defaultNodeTitle, xycoords[0], xycoords[1]);
 
         thisGraph.updateGraph();
         // make title of text immediently editable
         var d3txt = view.changeTextOfNode(view.knots.filter(function (dval) {
-            return dval.id === d.id;
+            return dval.nodeId === d.nodeId;
         }), d),
                 txtNode = d3txt.node();
         thisGraph.selectElementContents(txtNode);
@@ -273,8 +270,8 @@ GraphManager.prototype.svgMouseUp = function () {
 // mouseup on nodes
 GraphManager.prototype.circleMouseUp = function (d3node, d) {
     var thisGraph = this,
-            state = thisGraph.state,
-            consts = thisGraph.view.consts,
+            state = this.state,
+            consts = this.view.consts,
             view = this.view;
     // reset the states
     state.isShiftNodeDrag = false;
@@ -323,7 +320,7 @@ GraphManager.prototype.circleMouseUp = function (d3node, d) {
                 }
                 var prevNode = state.selectedNode;
 
-                if (!prevNode || prevNode.id !== d.id) {
+                if (!prevNode || prevNode.nodeId !== d.nodeId) {
                     thisGraph.replaceSelectNode(d3node, d);
                 } else {
                     thisGraph.removeSelectFromNode();
