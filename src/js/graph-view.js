@@ -14,18 +14,8 @@ var GraphView = function (svg) {
         nodeWidth: 100,
         nodeHeight: 100
     };
-
-    this.svg = svg;
-    this.svgG = svg.append("g").classed(this.consts.graphClass, true);
-
-    // svg nodes and edges
-    //paths = [{edge, sourceNodeId+targetNodeId}]
-    this.paths = this.svgG.append("g").selectAll("g");
-    //knots = [{}]
-    this.knots = this.svgG.append("g").selectAll("g");
-
+    
     var defs = svg.append('svg:defs');
-
     // define circles-ends markers for graph links
     defs.append('svg:marker')
             .attr('id', 'marker-circle')
@@ -51,12 +41,20 @@ var GraphView = function (svg) {
             .append('svg:path')
             .attr('d', 'M0,-5L10,0L0,5');
 
+    this.svg = svg;
+    this.svgG = svg.append("g").classed(this.consts.graphClass, true);
+    
     // displayed when dragging between nodes
     this.dragLine = this.svgG.append('svg:path')
             .attr('class', 'link dragline hidden')
             .attr('d', 'M0,0L0,0')
             .style('marker-end', 'url(#mark-end-arrow)');
 
+    // svg nodes and edges
+    //paths = [{edge, sourceNodeId+targetNodeId}]
+    this.paths = this.svgG.append("g").selectAll("g");
+    //knots = [{}]
+    this.knots = this.svgG.append("g").selectAll("g");
 };
 
 /* PROTOTYPE FUNCTIONS */
@@ -80,7 +78,6 @@ GraphView.prototype.updateWindow = function () {
 };
 
 GraphView.prototype.updatePaths = function (edges, selectedEdge) {
-    console.log(edges.toSource());
     this.paths = this.paths.data(edges, function (d) {
         return String(d.sourceNode.nodeId) + "+" + String(d.targetNode.nodeId);
     });
@@ -104,8 +101,8 @@ GraphView.prototype.addNewPaths = function (graphManager) {
             })
             .on("mousedown", function (d) {
                 //TODO: refactor + analize
-                //graphManager.pathMouseDown.call(graphManager, d3.select(this), d);
-                graphManager.pathMouseDown(d3.select(this), d);
+                graphManager.pathMouseDown.call(graphManager, d3.select(this), d);
+                //graphManager.pathMouseDown(d3.select(this), d);
             })
             .on("mouseup", function (d) {
                 graphManager.state.mouseDownEdge = null;
@@ -116,7 +113,6 @@ GraphView.prototype.addNewPaths = function (graphManager) {
 };
 
 GraphView.prototype.updateKnots = function (nodes) {
-    console.log(nodes.toSource());
     this.knots = this.knots.data(nodes, function (d) {
         return d.nodeId;
     });
@@ -146,11 +142,9 @@ GraphView.prototype.addNewKnots = function (graphManager) {
                 d3.select(this).classed(consts.connectClass, false);
             })
             .on("mousedown", function (d) {
-                //thisGraph.circleMouseDown.call(thisGraph, d3.select(this), d);
                 graphManager.circleMouseDown.call(graphManager, d3.select(this), d);
             })
             .on("mouseup", function (d) {
-                //thisGraph.circleMouseUp.call(thisGraph, d3.select(this), d);
                 graphManager.circleMouseUp.call(graphManager, d3.select(this), d);
             })
             .call(graphManager.drag);
