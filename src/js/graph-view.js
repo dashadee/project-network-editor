@@ -14,7 +14,7 @@ var GraphView = function (svg) {
         nodeWidth: 100,
         nodeHeight: 100
     };
-    
+
     var defs = svg.append('svg:defs');
     // define circles-ends markers for graph links
     defs.append('svg:marker')
@@ -43,7 +43,7 @@ var GraphView = function (svg) {
 
     this.svg = svg;
     this.svgG = svg.append("g").classed(this.consts.graphClass, true);
-    
+
     // displayed when dragging between nodes
     this.dragLine = this.svgG.append('svg:path')
             .attr('class', 'link dragline hidden')
@@ -68,6 +68,21 @@ GraphView.prototype.zoomed = function (dragging) {
     this.svg.call(dragging).on("dblclick.zoom", null);
 };
 
+//draw dragLine by coordinates
+GraphView.prototype.drawDragLine = function (d, isHidden) {
+    if (isHidden) {
+        //draw line to mouse coordinates
+        this.dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(this.svgG.node())[0] + ',' + d3.mouse(this.svgG.node())[1]);
+    } else {
+        //make line invisible
+        this.dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
+    }
+};
+
+//change dlagLine class to hidden (true or false)
+GraphView.prototype.makeDragLineHidden = function (isHidden) {
+    this.dragLine.classed("hidden", isHidden);
+};
 //
 GraphView.prototype.updateWindow = function () {
     var docEl = document.documentElement,
@@ -78,6 +93,7 @@ GraphView.prototype.updateWindow = function () {
 };
 
 GraphView.prototype.updatePaths = function (edges, selectedEdge) {
+    //console.log("edges: " + edges.toSource());
     this.paths = this.paths.data(edges, function (d) {
         return String(d.sourceNode.nodeId) + "+" + String(d.targetNode.nodeId);
     });
@@ -87,6 +103,7 @@ GraphView.prototype.updatePaths = function (edges, selectedEdge) {
                 return d === selectedEdge;
             })
             .attr("d", function (d) {
+                //console.log("updatePaths d: " + d.toSource());
                 return "M" + d.sourceNode.x + "," + d.sourceNode.y + "L" + d.targetNode.x + "," + d.targetNode.y;
             });
 };
@@ -97,6 +114,7 @@ GraphView.prototype.addNewPaths = function (graphManager) {
             .style('marker-start', 'url(#marker-circle)')
             .classed("link", true)
             .attr("d", function (d) {
+                //console.log("addNewPaths d: " + d.toSource());
                 return "M" + d.sourceNode.x + "," + d.sourceNode.y + "L" + d.targetNode.x + "," + d.targetNode.y;
             })
             .on("mousedown", function (d) {
@@ -107,7 +125,7 @@ GraphView.prototype.addNewPaths = function (graphManager) {
             .on("mouseup", function (d) {
                 graphManager.state.mouseDownEdge = null;
             });
-
+    //console.log("paths: " + this.paths.toSource());
     // remove old links
     this.paths.exit().remove();
 };
@@ -142,10 +160,10 @@ GraphView.prototype.addNewKnots = function (graphManager) {
                 d3.select(this).classed(consts.connectClass, false);
             })
             .on("mousedown", function (d) {
-                graphManager.circleMouseDown.call(graphManager, d3.select(this), d);
+                graphManager.knotMouseDown.call(graphManager, d3.select(this), d);
             })
             .on("mouseup", function (d) {
-                graphManager.circleMouseUp.call(graphManager, d3.select(this), d);
+                graphManager.knotMouseUp.call(graphManager, d3.select(this), d);
             })
             .call(graphManager.drag);
 

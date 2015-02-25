@@ -24,7 +24,7 @@ var GraphManager = function (graphView, graphModel) {
             })
             .on("drag", function (args) {
                 graphManager.state.isDragged = true;
-                graphManager.dragmove.call(graphManager, args);
+                graphManager.dragMove.call(graphManager, args);
             })
             .on("dragend", function () {
                 // todo check if edge-mode is selected
@@ -81,10 +81,10 @@ var GraphManager = function (graphView, graphModel) {
     d3.select("#download-input").on("click", function () {
         var saveEdges = [];
         graphManager.graph.edges.forEach(function (val, i) {
-            saveEdges.push({source: val.sourceNode.nodeId, target: val.targetNode.nodeId});
+            saveEdges.push({edgeId: val.edgeId, sourceNode: val.sourceNode.nodeId, targetNode: val.targetNode.nodeId});
         });
         var blob = new Blob([window.JSON.stringify({"nodes": graphManager.graph.nodes, "edges": saveEdges})], {type: "text/plain;charset=utf-8"});
-        saveAs(blob, "mydag.json");
+        saveAs(blob, "myGraph.json");
     });
 
     // handle uploaded data
@@ -103,24 +103,11 @@ var GraphManager = function (graphView, graphModel) {
                 try {
                     var jsonObj = JSON.parse(txtRes);
                     graphManager.deleteGraph(true);
+                    var builder = new GraphBuilder();
+                    graphManager.graph = builder.buildGraphFromJson(jsonObj);
                     //!!! refactoring
-                    graphManager.graph.nodes = jsonObj.nodes;
-                    graphManager.setNewNodeId(jsonObj.nodes.length + 1);
-                    var newEdges = jsonObj.edges;
-                    newEdges.forEach(function (e, i) {
-
-
-                        graphManager.graph.addEdge(e.source, e.target);
-                        /* newEdges[i] = {source: graphManager.graph.nodes.filter(function (n) {
-                         return n.nodeId == e.source;
-                         })[0],
-                         target: graphManager.graph.nodes.filter(function (n) {
-                         return n.nodeId == e.target;
-                         })[0]};
-                         */
-                    });
-                    //thisGraph.edges = newEdges;
-                    thisGraph.updateGraph();
+                    //graphManager.graph.uploadGraph(jsonObj.nodes, jsonObj.edges);
+                    graphManager.updateGraph();
                 } catch (err) {
                     window.alert("Error parsing uploaded file\nerror message: " + err.message);
                     return;
@@ -131,7 +118,6 @@ var GraphManager = function (graphView, graphModel) {
         } else {
             alert("Your browser won't let you save this graph -- try upgrading your browser to IE 10+ or Chrome or Firefox.");
         }
-
     });
 
     // handle delete graph
@@ -142,19 +128,15 @@ var GraphManager = function (graphView, graphModel) {
 
 /* PROTOTYPE FUNCTIONS */
 
-GraphManager.prototype.setNewNodeId = function (newId) {
-    this.newNodeId = newId;
-};
-
-
-GraphManager.prototype.dragmove = function (d) {
+//??
+GraphManager.prototype.dragMove = function (d) {
     var graphManager = this,
-            view = this.view;
+            view = this.view,
+            graph = this.graph;
     if (graphManager.state.isShiftNodeDrag) {
-        view.dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(view.svgG.node())[0] + ',' + d3.mouse(view.svgG.node())[1]);
+        view.drawDragLine(d, true);
     } else {
-        d.x += d3.event.dx;
-        d.y += d3.event.dy;
+        graph.changeNodeCoordinates(d, d3.event.dx, d3.event.dy);
         graphManager.updateGraph();
     }
 };
@@ -162,7 +144,7 @@ GraphManager.prototype.dragmove = function (d) {
 //!!!
 // keydown on main svg
 GraphManager.prototype.svgKeyDown = function () {
-    var thisGraph = this,
+    var graphManager = this,
             state = this.state,
             consts = this.view.consts,
             graph = this.graph;
@@ -179,48 +161,18 @@ GraphManager.prototype.svgKeyDown = function () {
         case consts.DELETE_KEY:
             d3.event.preventDefault();
             if (selectedNode) {
-                //thisGraph.nodes.splice(thisGraph.nodes.indexOf(selectedNode), 1);
-                //thisGraph.spliceLinksForNode(selectedNode);
                 graph.deleteNode(selectedNode);
                 state.selectedNode = null;
-                thisGraph.updateGraph();
+                graphManager.updateGraph();
             } else if (selectedEdge) {
                 //delete infromation about selectedEdge from nodes
-                /*thisGraph.nodes.filter(function (d) {
-                 if (d === selectedEdge.source) {
-                 d.numOutEdges--;
-                 }
-                 if (d === selectedEdge.target) {
-                 d.numInEdges--;
-                 }
-                 });
-                 thisGraph.edges.splice(thisGraph.edges.indexOf(selectedEdge), 1);
-                 */
                 graph.deleteEdge(selectedEdge);
                 state.selectedEdge = null;
-                thisGraph.updateGraph();
+                graphManager.updateGraph();
             }
             break;
     }
 };
-
-// remove edges associated with a node
-/*  GraphCreator.prototype.spliceLinksForNode = function(node) {
- var thisGraph = this,
- //find all edges which will be spliced
- toSplice = thisGraph.edges.filter(function(l) {
- return (l.source === node || l.target === node);
- });
- //map create new array when splice delete edge l
- toSplice.map(function(l) {
- //delete information about l edge from nodes
- thisGraph.nodes[l.source].numOutEdges--;
- thisGraph.nodes[l.target].numInEdges--;
- //delete l edge
- thisGraph.edges.splice(thisGraph.edges.indexOf(l), 1);
- });
- };
- */
 
 // keyup on main svg  
 GraphManager.prototype.svgKeyUp = function () {
@@ -232,10 +184,9 @@ GraphManager.prototype.svgMouseDown = function () {
     this.state.graphMouseDown = true;
 };
 
-//!!!
 // mouseup on main svg
 GraphManager.prototype.svgMouseUp = function () {
-    var thisGraph = this,
+    var graphManager = this,
             state = this.state,
             graph = this.graph,
             consts = this.view.consts,
@@ -247,29 +198,26 @@ GraphManager.prototype.svgMouseUp = function () {
         // clicked not dragged from svg
         // TODO: refactoring !!!!
         var xycoords = d3.mouse(view.svgG.node());
-            // d = {id: thisGraph.newNodeId++, title: thisGraph.consts.defaultNodeTitle, x: xycoords[0], y: xycoords[1], numInEdges: 0, numOutEdges: 0};
-        //thisGraph.nodes.push(d);
         var d = graph.addNode(consts.defaultNodeTitle, xycoords[0], xycoords[1]);
-
-        thisGraph.updateGraph();
+        graphManager.updateGraph();
         // make title of text immediently editable
         var d3txt = view.changeTextOfNode(view.knots.filter(function (dval) {
             return dval.nodeId === d.nodeId;
         }), d),
                 txtNode = d3txt.node();
-        thisGraph.selectElementContents(txtNode);
+        graphManager.selectElementContents(txtNode);
         txtNode.focus();
     } else if (state.isShiftNodeDrag) {
         // dragged from node
         state.isShiftNodeDrag = false;
-        view.dragLine.classed("hidden", true);
+        view.makeDragLineHidden(true);
     }
     state.graphMouseDown = false;
 };
 
-// mouseup on nodes
-GraphManager.prototype.circleMouseUp = function (d3node, d) {
-    var thisGraph = this,
+/// mouseup on nodes
+GraphManager.prototype.knotMouseUp = function (d3node, d) {
+    var graphManager = this,
             state = this.state,
             consts = this.view.consts,
             view = this.view;
@@ -282,25 +230,12 @@ GraphManager.prototype.circleMouseUp = function (d3node, d) {
     if (!mouseDownNode)
         return;
 
-    view.dragLine.classed("hidden", true);
+    view.makeDragLineHidden(true);
 
     if (mouseDownNode !== d) {
         // we're in a different node: create new edge for mousedown edge and add to graph
-
-        //!!!
-        thisGraph.graph.addEdge(mouseDownNode, d);
-        thisGraph.updateGraph();
-        /*var newEdge = {source: mouseDownNode, target: d};
-         var filtRes = thisGraph.paths.filter(function (d) {
-         if (d.source === newEdge.target && d.target === newEdge.source) {
-         thisGraph.edges.splice(thisGraph.edges.indexOf(d), 1);
-         }
-         return d.source === newEdge.source && d.target === newEdge.target;
-         });
-         if (!filtRes[0].length) {
-         thisGraph.edges.push(newEdge);
-         thisGraph.updateGraph();
-         }*/
+        graphManager.graph.addEdge(mouseDownNode, d);
+        graphManager.updateGraph();
     } else {
         // we're in the same node
         if (state.isDragged) {
@@ -312,18 +247,18 @@ GraphManager.prototype.circleMouseUp = function (d3node, d) {
                 // shift-clicked node: edit text content
                 var d3txt = view.changeTextOfNode(d3node, d);
                 var txtNode = d3txt.node();
-                thisGraph.selectElementContents(txtNode);
+                graphManager.selectElementContents(txtNode);
                 txtNode.focus();
             } else {
                 if (state.selectedEdge) {
-                    thisGraph.removeSelectFromEdge();
+                    graphManager.removeSelectFromEdge();
                 }
                 var prevNode = state.selectedNode;
 
                 if (!prevNode || prevNode.nodeId !== d.nodeId) {
-                    thisGraph.replaceSelectNode(d3node, d);
+                    graphManager.replaceSelectNode(d3node, d);
                 } else {
-                    thisGraph.removeSelectFromNode();
+                    graphManager.removeSelectFromNode();
                 }
             }
         }
@@ -331,50 +266,48 @@ GraphManager.prototype.circleMouseUp = function (d3node, d) {
     state.mouseDownNode = null;
     return;
 
-}; // end of circles mouseup
+}; // end of knot mouseup
 
-GraphManager.prototype.circleMouseDown = function (d3node, d) {
-    var thisGraph = this,
-            state = thisGraph.state,
+GraphManager.prototype.knotMouseDown = function (d3node, d) {
+    var state = this.state,
             view = this.view;
     d3.event.stopPropagation();
     state.mouseDownNode = d;
     if (d3.event.shiftKey) {
         state.isShiftNodeDrag = d3.event.shiftKey;
         // reposition dragged directed edge
-        view.dragLine.classed('hidden', false)
-                .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
+        view.makeDragLineHidden(false);
+        view.drawDragLine(d, false);
         return;
     }
 };
 
 GraphManager.prototype.replaceSelectEdge = function (d3Path, edgeData) {
-    var thisGraph = this,
+    var graphManager = this,
             state = this.state,
             consts = this.view.consts;
     d3Path.classed(consts.selectedClass, true);
     if (state.selectedEdge) {
-        thisGraph.removeSelectFromEdge();
+        graphManager.removeSelectFromEdge();
     }
     state.selectedEdge = edgeData;
 };
 
 GraphManager.prototype.replaceSelectNode = function (d3Node, nodeData) {
-    var thisGraph = this,
-        state = this.state,
-        consts = this.view.consts;
+    var graphManager = this,
+            state = this.state,
+            consts = this.view.consts;
     d3Node.classed(consts.selectedClass, true);
     if (state.selectedNode) {
-        thisGraph.removeSelectFromNode();
+        graphManager.removeSelectFromNode();
     }
     state.selectedNode = nodeData;
 };
 
 GraphManager.prototype.removeSelectFromNode = function () {
-    var thisGraph = this,
-        state = this.state,
-        consts = this.view.consts,
-        knots = this.view.knots;
+    var state = this.state,
+            consts = this.view.consts,
+            knots = this.view.knots;
     knots.filter(function (cd) {
         return cd.nodeId === state.selectedNode.nodeId;
     }).classed(consts.selectedClass, false);
@@ -382,10 +315,9 @@ GraphManager.prototype.removeSelectFromNode = function () {
 };
 
 GraphManager.prototype.removeSelectFromEdge = function () {
-    var thisGraph = this,
-        state = this.state,
-        consts = this.view.consts,
-        paths = this.view.paths;
+    var state = this.state,
+            consts = this.view.consts,
+            paths = this.view.paths;
     paths.filter(function (cd) {
         return cd === state.selectedEdge;
     }).classed(consts.selectedClass, false);
@@ -418,20 +350,20 @@ GraphManager.prototype.updateGraph = function () {
 };
 
 GraphManager.prototype.pathMouseDown = function (d3path, d) {
-    var thisGraph = this,
-            state = thisGraph.state;
+    var graphManager = this,
+            state = this.state;
     d3.event.stopPropagation();
     state.mouseDownEdge = d;
 
     if (state.selectedNode) {
-        thisGraph.removeSelectFromNode();
+        graphManager.removeSelectFromNode();
     }
 
     var prevEdge = state.selectedEdge;
     if (!prevEdge || prevEdge !== d) {
-        thisGraph.replaceSelectEdge(d3path, d);
+        graphManager.replaceSelectEdge(d3path, d);
     } else {
-        thisGraph.removeSelectFromEdge();
+        graphManager.removeSelectFromEdge();
     }
 };
 
