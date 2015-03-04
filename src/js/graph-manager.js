@@ -91,33 +91,8 @@ var GraphManager = function (graphView, graphModel) {
     d3.select("#upload-input").on("click", function () {
         document.getElementById("hidden-file-upload").click();
     });
-    //!!!! refactoring
-    d3.select("#hidden-file-upload").on("change", function () {
-        if (window.File && window.FileReader && window.FileList && window.Blob) {
-            var uploadFile = this.files[0];
-            var filereader = new window.FileReader();
-
-            filereader.onload = function () {
-                var txtRes = filereader.result;
-                // TODO better error handling
-                try {
-                    var jsonObj = JSON.parse(txtRes);
-                    graphManager.deleteGraph(true);
-                    var builder = new GraphBuilder();
-                    graphManager.graph = builder.buildGraphFromJson(jsonObj);
-                    //!!! refactoring
-                    //graphManager.graph.uploadGraph(jsonObj.nodes, jsonObj.edges);
-                    graphManager.updateGraph();
-                } catch (err) {
-                    window.alert("Error parsing uploaded file\nerror message: " + err.message);
-                    return;
-                }
-            };
-            filereader.readAsText(uploadFile);
-
-        } else {
-            alert("Your browser won't let you save this graph -- try upgrading your browser to IE 10+ or Chrome or Firefox.");
-        }
+    d3.select("#hidden-file-upload").on("change", function() {
+        graphManager.uploadGraph(this);
     });
 
     // handle delete graph
@@ -127,6 +102,36 @@ var GraphManager = function (graphView, graphModel) {
 };
 
 /* PROTOTYPE FUNCTIONS */
+
+// upload graph data
+GraphManager.prototype.uploadGraph = function(element) {
+    var graphManager = this;
+    
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        var uploadFile = element.files[0];
+        var filereader = new window.FileReader();
+
+        filereader.onload = function () {
+            var txtRes = filereader.result;
+            // TODO better error handling
+            try {
+                var jsonObj = JSON.parse(txtRes);
+                graphManager.deleteGraph(true);
+                
+                var builder = new GraphBuilder();
+                graphManager.graph = builder.buildGraphFromJson(jsonObj);
+                graphManager.updateGraph();
+            } catch (err) {
+                window.alert("Error parsing uploaded file\nerror message: " + err.message);
+                return;
+            }
+        };
+        filereader.readAsText(uploadFile);
+
+    } else {
+        alert("Your browser won't let you save this graph -- try upgrading your browser to IE 10+ or Chrome or Firefox.");
+    }
+};
 
 //??
 GraphManager.prototype.dragMove = function (d) {

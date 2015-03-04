@@ -37,6 +37,7 @@ Graph.prototype.addNode = function (title, x, y, nodeId) {
     //!!
     return newNode;
 };
+
 //recreate nodes from json object
 Graph.prototype.uploadNodes = function (uploadedNodes) {
     var graph = this;
@@ -45,25 +46,30 @@ Graph.prototype.uploadNodes = function (uploadedNodes) {
         //console.log(graph.addNode(e.title, e.x, e.y, e.nodeId).toSource());
     });
 };
+
 //recreate edges from json object
 Graph.prototype.uploadEdges = function (uploadedEdges) {
     var graph = this;
     uploadedEdges.forEach(function (e, i) {
         graph.addEdge(graph.nodes.filter(function (n) {
             return n.nodeId === e.sourceNode;
-        }), graph.nodes.filter(function (n) {
+        })[0],
+        graph.nodes.filter(function (n) {
             return n.nodeId === e.targetNode;
-        }));
+        })[0]);
     });
     //console.log(graph.edges.toSource());
 };
+
 Graph.prototype.changeNodeTitle = function (node, newTitle) {
     this.nodes[this.nodes.indexOf(node)].title = newTitle;
 };
+
 Graph.prototype.changeNodeCoordinates = function (node, dx, dy) {
     node.x += dx;
     node.y += dy;
 };
+
 Graph.prototype.addEdge = function (sourceNode, targetNode, edgeId) {
     var newEdge = {};
     if (edgeId) {
