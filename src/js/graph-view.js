@@ -80,11 +80,9 @@ GraphView.prototype.drawDragLine = function (d, isHidden) {
     if (isHidden) {
         //draw line to mouse coordinates
         this.dragLine.attr('d', this.diagonal(d.x, d.y, d3.mouse(this.svgG.node())[0], d3.mouse(this.svgG.node())[1]));
-        //this.dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d3.mouse(this.svgG.node())[0] + ',' + d3.mouse(this.svgG.node())[1]);
     } else {
         //make line invisible
         this.dragLine.attr('d', this.diagonal(d.x, d.y, d.x , d.y));
-        //this.dragLine.attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
     }
 };
 
@@ -114,7 +112,6 @@ GraphView.prototype.updatePaths = function (edges, selectedEdge) {
             })
             .attr("d", function (d) {
                 return graphView.diagonal(d.sourceNode.x, d.sourceNode.y, d.targetNode.x, d.targetNode.y)();
-                //return "M" + d.sourceNode.x + "," + d.sourceNode.y + "L" + d.targetNode.x + "," + d.targetNode.y;
             });
 };
 GraphView.prototype.addNewPaths = function (graphManager) {
@@ -127,7 +124,6 @@ GraphView.prototype.addNewPaths = function (graphManager) {
             .classed("link", true)
             .attr("d", function (d) {
                 return graphView.diagonal(d.sourceNode.x, d.sourceNode.y, d.targetNode.x, d.targetNode.y)();
-                //return "M" + d.sourceNode.x + "," + d.sourceNode.y + "L" + d.targetNode.x + "," + d.targetNode.y;
             })
             .on("mousedown", function (d) {
                 //TODO: refactor + analize
