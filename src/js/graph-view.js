@@ -12,7 +12,7 @@ var GraphView = function (svg) {
         DELETE_KEY: 46,
         ENTER_KEY: 13,
         nodeWidth: 100,
-        nodeHeight: 100
+        nodeHeight: 60
     };
 
     var defs = svg.append('svg:defs');
@@ -188,20 +188,34 @@ GraphView.prototype.addNewKnots = function (graphManager) {
 
 /* insert svg line breaks: taken from http://stackoverflow.com/questions/13241475/how-do-i-include-newlines-in-labels-in-d3-charts */
 GraphView.prototype.insertTitleLinebreaks = function (gEl, title) {
-    var words = title.split(/\s+/g),
-            nwords = words.length;
+    var words = title.split(/\s+/g);
+    var lines = [];
+    var maxCharsInLine = 10;
+    var currentLine = "";
+    for (var i = 0; i < words.length; i++) {
+        currentLine += words[i];
+        var potentialLength = currentLine.length + ( i < (words.length - 1)
+                                                        ? 1 + words[i + 1].length
+                                                        : maxCharsInLine );
+        if (potentialLength > maxCharsInLine) {
+            lines.push(currentLine);
+            currentLine = "";
+        } else {
+            currentLine += " ";
+        }
+    }
+    var nlines = lines.length;
+    
     var el = gEl.append("text")
             .attr("x", String(this.consts.nodeWidth / 2))
             .attr("y", String(this.consts.nodeHeight / 2))
             .attr("text-anchor", "middle")
-            .attr("dy", "-" + (nwords - 1) * 7.5);
-
-    for (var i = 0; i < words.length; i++) {
-        var tspan = el.append('tspan').text(words[i]);
+            .attr("dy", "-" + (nlines - 1) * 5.2);    
+    
+    for (var i = 0; i < lines.length; i++) {
+        var tspan = el.append('tspan').text(lines[i]);
         if (i > 0) {
             tspan.attr("x", String(this.consts.nodeWidth / 2)).attr('dy', '15');
-            //tspan.attr('x', 0).attr('dy', '15');
-
         }
     }
 };
@@ -216,20 +230,19 @@ GraphView.prototype.changeTextOfNode = function (d3node, d) {
     var nodeBCR = htmlEl.getBoundingClientRect(),
             //curScale = nodeBCR.width/consts.nodeRadius,
             curScale = nodeBCR.width / (consts.nodeWidth / 2),
-            placePad = 5 * curScale,
+            placePadL = 5 * curScale,
+            placePadT = 0,//1 * curScale,
             //useHW = curScale > 1 ? nodeBCR.width*0.71 : consts.nodeRadius*1.42;
-            useW = curScale > 1 ? nodeBCR.width * 0.71 : consts.nodeWidth * 1.42,
-            useH = curScale > 1 ? nodeBCR.width * 0.71 : consts.nodeHeight * 1.42;
+            useW = curScale > 1 ? nodeBCR.width * 0.8 : consts.nodeWidth * 1.42,
+            useH = curScale > 1 ? nodeBCR.width * 0.8 : consts.nodeHeight * 1.42;
 
     // replace with editable content text
     var d3txt = graphView.svg.selectAll("foreignObject")
             .data([d])
             .enter()
             .append("foreignObject")
-            //.attr("x", nodeBCR.left + placePad )
-            //.attr("y", nodeBCR.top + placePad)
-            .attr("x", nodeBCR.left + placePad)
-            .attr("y", nodeBCR.top + placePad)
+            .attr("x", nodeBCR.left + placePadL)
+            .attr("y", nodeBCR.top + placePadT)
             .attr("height", useH)
             .attr("width", useW)
             //.attr("height", 2*useHW)
