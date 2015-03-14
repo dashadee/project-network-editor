@@ -6,13 +6,18 @@ var GraphView = function (svg) {
         selectedClass: "selected",
         connectClass: "connect-node",
         knotGClass: "conceptG",
+        knotTitleClass: "title",
+        firstResClass: "first-res",
+        secondResClass: "second-res",
+        textResClass: "text-res",
         graphClass: "graph",
         activeEditId: "active-editing",
         BACKSPACE_KEY: 8,
         DELETE_KEY: 46,
         ENTER_KEY: 13,
         nodeWidth: 100,
-        nodeHeight: 60
+        nodeHeight: 60,
+        minResWidth: 10
     };
 
     var defs = svg.append('svg:defs');
@@ -177,6 +182,12 @@ GraphView.prototype.addNewKnots = function (graphManager) {
     newGs.append("rect")
             .attr("width", String(consts.nodeWidth))
             .attr("height", String(consts.nodeHeight));
+    
+    graphView.addKnotResources(
+        newGs.append("g").attr("transform", function (d) {
+            return "translate(0, " + consts.nodeHeight + ")";
+        })
+    );
 
     newGs.each(function (d) {
         graphView.insertTitleLinebreaks(d3.select(this), d.title);
@@ -185,6 +196,50 @@ GraphView.prototype.addNewKnots = function (graphManager) {
     // remove old nodes
     this.knots.exit().remove();
 };
+
+GraphView.prototype.addKnotResources = function (resGroup) {
+    var consts = this.consts;
+    
+    resGroup.append("rect")
+        .attr("width", String(consts.nodeWidth))
+        .attr("height", String(consts.nodeHeight / 2.5));
+
+    var resValue = 0;
+    var resWidth = consts.minResWidth;
+    var resHeight = consts.nodeHeight / 5 - 1;
+    
+    resGroup.append("rect")
+        .attr("width", String(resWidth))
+        .attr("height", String(resHeight))
+        .attr("style", "fill: #0085ff; stroke-width: 0")
+        .attr("transform", function (d) {
+            return "translate(1, 1)";
+        });
+        
+    resGroup.append("text").classed(consts.textResClass, true)
+        .attr("x", String(resWidth / 2))
+        .attr("dy", "1em")
+        .attr("stroke", "white")
+        .attr("text-anchor", "middle")
+        .append("tspan").text(String(resValue));
+   
+    resGroup.append("rect").classed(consts.firstResClass, true)
+        .attr("width", String(resWidth))
+        .attr("height", String(resHeight))
+        .attr("style", "fill: #ff5555; stroke-width: 0")
+        .attr("transform", function (d) {
+            return "translate(1, " + (resHeight + 1) + ")";
+        });
+        
+    resGroup.append("text").classed(consts.textResClass, true)
+        .attr("x", String(resWidth / 2))
+        .attr("y", String(resHeight))
+        .attr("dy", "1em")
+        .attr("stroke", "white")
+        .attr("text-anchor", "middle")
+        .append("tspan").text(String(resValue));
+    
+}
 
 /* insert svg line breaks: taken from http://stackoverflow.com/questions/13241475/how-do-i-include-newlines-in-labels-in-d3-charts */
 GraphView.prototype.insertTitleLinebreaks = function (gEl, title) {
@@ -206,7 +261,7 @@ GraphView.prototype.insertTitleLinebreaks = function (gEl, title) {
     }
     var nlines = lines.length;
     
-    var el = gEl.append("text")
+    var el = gEl.append("text").classed(this.consts.knotTitleClass, true)
             .attr("x", String(this.consts.nodeWidth / 2))
             .attr("y", String(this.consts.nodeHeight / 2))
             .attr("text-anchor", "middle")
@@ -226,7 +281,7 @@ GraphView.prototype.changeTextOfNode = function (d3node, d) {
             consts = this.consts,
             htmlEl = d3node.node();
 
-    d3node.selectAll("text").remove();
+    d3node.selectAll("." + consts.knotTitleClass).remove();
     var nodeBCR = htmlEl.getBoundingClientRect(),
             //curScale = nodeBCR.width/consts.nodeRadius,
             curScale = nodeBCR.width / (consts.nodeWidth / 2),
