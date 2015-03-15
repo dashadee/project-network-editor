@@ -240,11 +240,13 @@ GraphView.prototype.addKnotResources = function (resGroup) {
         return function (d) {
             d3.event.stopPropagation();
             
-            var editedText = prompt("Enter new value:", textNode.text());
-            if (editedText != null && !isNaN(parseFloat(editedText)) && isFinite(editedText)) {
-                textNode.text(editedText);
-                d[objectName][fieldName] = parseFloat(editedText);
-                recalcResRects(d);
+            if (d3.event.button == 0) {
+                var editedText = prompt("Enter new value:", textNode.text());
+                if (editedText != null && !isNaN(parseFloat(editedText)) && isFinite(editedText)) {
+                    textNode.text(editedText);
+                    d[objectName][fieldName] = parseFloat(editedText);
+                    recalcResRects(d);
+                }
             }
         };
     }
@@ -280,10 +282,10 @@ GraphView.prototype.addKnotResources = function (resGroup) {
     var resHeight = consts.nodeHeight / 5 - 1;
     
     addResource(1, resGroup.append("g"), resWidth, resHeight,
-        "fill: #0085ff; stroke-width: 0");
+        "fill: #319fdd; stroke-width: 0");
 
     addResource(2, resGroup.append("g"), resWidth, resHeight,
-        "fill: #ff5555; stroke-width: 0");
+        "fill: #1064bc; stroke-width: 0");
     
 }
 
