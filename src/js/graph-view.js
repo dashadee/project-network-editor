@@ -198,8 +198,44 @@ GraphView.prototype.addNewKnots = function (graphManager) {
 };
 
 GraphView.prototype.addKnotResources = function (resGroup) {
+    
     var consts = this.consts;
     
+    function addResource(resGroup, resWidth, resHeight, resTop, styleStr, transformStr ) {
+        resGroup.append("rect")
+            .attr("width", String(resWidth))
+            .attr("height", String(resHeight))
+            .attr("style", styleStr)
+            .attr("transform", function (d) {
+                return transformStr;
+            });
+        
+        var textNode = resGroup.append("text").classed(consts.textResClass, true)
+            .attr("x", String(resWidth / 2))
+            .attr("y", String(resTop))
+            .attr("dy", "1em")
+            .attr("stroke", "white")
+            .attr("text-anchor", "middle")
+            .append("tspan");
+        textNode.text(String(resValue));
+
+        resGroup.on("mousedown", editText(textNode))
+            .on("mouseup", function (d) {
+                d3.event.stopPropagation();
+            });
+    }
+    
+    function editText(textNode) {
+        return function (d) {
+            d3.event.stopPropagation();
+            
+            var editedText = prompt("Enter new value:", textNode.text());
+            if(editedText != null){
+                textNode.text(editedText);
+            }
+        };
+    }
+
     resGroup.append("rect")
         .attr("width", String(consts.nodeWidth))
         .attr("height", String(consts.nodeHeight / 2.5));
@@ -208,36 +244,13 @@ GraphView.prototype.addKnotResources = function (resGroup) {
     var resWidth = consts.minResWidth;
     var resHeight = consts.nodeHeight / 5 - 1;
     
-    resGroup.append("rect")
-        .attr("width", String(resWidth))
-        .attr("height", String(resHeight))
-        .attr("style", "fill: #0085ff; stroke-width: 0")
-        .attr("transform", function (d) {
-            return "translate(1, 1)";
-        });
-        
-    resGroup.append("text").classed(consts.textResClass, true)
-        .attr("x", String(resWidth / 2))
-        .attr("dy", "1em")
-        .attr("stroke", "white")
-        .attr("text-anchor", "middle")
-        .append("tspan").text(String(resValue));
-   
-    resGroup.append("rect").classed(consts.firstResClass, true)
-        .attr("width", String(resWidth))
-        .attr("height", String(resHeight))
-        .attr("style", "fill: #ff5555; stroke-width: 0")
-        .attr("transform", function (d) {
-            return "translate(1, " + (resHeight + 1) + ")";
-        });
-        
-    resGroup.append("text").classed(consts.textResClass, true)
-        .attr("x", String(resWidth / 2))
-        .attr("y", String(resHeight))
-        .attr("dy", "1em")
-        .attr("stroke", "white")
-        .attr("text-anchor", "middle")
-        .append("tspan").text(String(resValue));
+    addResource(resGroup.append("g"), resWidth, resHeight, 0,
+        "fill: #0085ff; stroke-width: 0",
+        "translate(1, 1)");
+
+    addResource(resGroup.append("g"), resWidth, resHeight, resHeight,
+        "fill: #ff5555; stroke-width: 0",
+        "translate(1, " + (resHeight + 1) + ")");
     
 }
 
