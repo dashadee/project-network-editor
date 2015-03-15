@@ -7,12 +7,19 @@
 
   <body>
     <div id="main-canvas">
-    <div id="toolbox">
-      <input type="file" id="hidden-file-upload">
-      <input id="upload-input" type="image" title="upload graph" src="img/upload-icon.png" alt="upload graph"> 
-      <input type="image" id="download-input" title="download graph" src="img/download-icon.png" alt="download graph"> 
-      <input type="image" id="delete-graph" title="delete graph" src="img/trash-icon.png" alt="delete graph">
-    </div>
+        <div id="toolbox" class="box">
+          <input type="file" id="hidden-file-upload">
+          <input id="upload-input" type="image" title="upload graph" src="img/upload-icon.png" alt="upload graph"> 
+          <input type="image" id="download-input" title="download graph" src="img/download-icon.png" alt="download graph"> 
+          <input type="image" id="delete-graph" title="delete graph" src="img/trash-icon.png" alt="delete graph">
+        </div>
+        <div id="controlbox" class="box">
+          <input type="image" id="run-input" title="run graph" src="img/play-icon.png" alt="run graph">
+          <input type="image" id="setup-input" title="setup graph" src="img/gear-icon.png" alt="setup graph">
+        </div>
+        <div id="setupbox" class="box" style="display: none">
+          <span>Text text</span>
+        </div>
     </div>
 
     <script src="js/d3.min.js" charset="utf-8"></script>

@@ -99,6 +99,17 @@ var GraphManager = function (graphView, graphModel) {
     d3.select("#delete-graph").on("click", function () {
         graphManager.deleteGraph(false);
     });
+    
+    // handle run graph
+    d3.select("#run-input").on("click", function () {
+        ;
+    });
+    
+    // handle setup graph
+    d3.select("#setup-input").on("click", function () {
+        var element = document.getElementById("setupbox");
+        element.style.display = (element.style.display == 'none') ? '' : 'none';
+    });
 };
 
 /* PROTOTYPE FUNCTIONS */
