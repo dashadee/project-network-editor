@@ -2,6 +2,7 @@
 var GraphView = function (svg) {
 
     this.consts = {
+        epsilone: 0.0001,
         defaultNodeTitle: "new node",
         selectedClass: "selected",
         connectClass: "connect-node",
@@ -17,7 +18,8 @@ var GraphView = function (svg) {
         ENTER_KEY: 13,
         nodeWidth: 100,
         nodeHeight: 60,
-        minResWidth: 10
+        minResWidth: 10,
+        maxResWidth: 98
     };
 
     var defs = svg.append('svg:defs');
@@ -201,39 +203,72 @@ GraphView.prototype.addKnotResources = function (resGroup) {
     
     var consts = this.consts;
     
-    function addResource(resGroup, resWidth, resHeight, resTop, styleStr, transformStr ) {
+    function addResource(number, resGroup, resWidth, resHeight, styleStr) {
+        var resTop = resHeight * (number - 1);
+        
         resGroup.append("rect")
+            .attr("id", function (d) {
+                return "resRect" + d.nodeId + "-" + number;
+            })
             .attr("width", String(resWidth))
             .attr("height", String(resHeight))
             .attr("style", styleStr)
             .attr("transform", function (d) {
-                return transformStr;
+                return "translate(1, " + (resTop + 1) + ")";
             });
         
         var textNode = resGroup.append("text").classed(consts.textResClass, true)
+            .attr("id", function (d) {
+                return "resText" + d.nodeId + "-" + number;
+            })
             .attr("x", String(resWidth / 2))
             .attr("y", String(resTop))
             .attr("dy", "1em")
             .attr("stroke", "white")
+            .attr("fill", "white")
             .attr("text-anchor", "middle")
             .append("tspan");
         textNode.text(String(resValue));
 
-        resGroup.on("mousedown", editText(textNode))
+        resGroup.on("mousedown", editText(number, textNode, "resource" + number, "value"))
             .on("mouseup", function (d) {
                 d3.event.stopPropagation();
             });
     }
     
-    function editText(textNode) {
+    function editText(number, textNode, objectName, fieldName) {
         return function (d) {
             d3.event.stopPropagation();
             
             var editedText = prompt("Enter new value:", textNode.text());
-            if(editedText != null){
+            if (editedText != null && !isNaN(parseFloat(editedText)) && isFinite(editedText)) {
                 textNode.text(editedText);
+                d[objectName][fieldName] = parseFloat(editedText);
+                recalcResRects(d);
             }
         };
+    }
+    
+    function recalcResRects(data) {
+        var value1 = data.resource1.value;
+        var value2 = data.resource2.value;
+        var width1 = value1 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
+        var width2 = value2 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
+
+        if (value1 > consts.epsilone && value2 > consts.epsilone) {
+            if (value1 > value2) {
+                width1 = consts.maxResWidth;
+                width2 = Math.max(value2 / value1 * consts.maxResWidth, consts.minResWidth);
+            } else if (value1 < value2) {
+                width2 = consts.maxResWidth;
+                width1 = Math.max(value1 / value2 * consts.maxResWidth, consts.minResWidth);
+            }
+        }
+        d3.select("#resRect" + data.nodeId + "-1").attr("width", String(width1));
+        d3.select("#resText" + data.nodeId + "-1").attr("x", String(width1 / 2));
+
+        d3.select("#resRect" + data.nodeId + "-2").attr("width", String(width2));
+        d3.select("#resText" + data.nodeId + "-2").attr("x", String(width2 / 2));
     }
 
     resGroup.append("rect")
@@ -244,13 +279,11 @@ GraphView.prototype.addKnotResources = function (resGroup) {
     var resWidth = consts.minResWidth;
     var resHeight = consts.nodeHeight / 5 - 1;
     
-    addResource(resGroup.append("g"), resWidth, resHeight, 0,
-        "fill: #0085ff; stroke-width: 0",
-        "translate(1, 1)");
+    addResource(1, resGroup.append("g"), resWidth, resHeight,
+        "fill: #0085ff; stroke-width: 0");
 
-    addResource(resGroup.append("g"), resWidth, resHeight, resHeight,
-        "fill: #ff5555; stroke-width: 0",
-        "translate(1, " + (resHeight + 1) + ")");
+    addResource(2, resGroup.append("g"), resWidth, resHeight,
+        "fill: #ff5555; stroke-width: 0");
     
 }
 
