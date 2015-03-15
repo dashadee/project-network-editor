@@ -3,9 +3,7 @@ var Graph = function (nodes, edges) {
 
     this.newNodeId = 0;
     this.newEdgeId = 0;
-    //nodes=[{ nodeId:"", title:"", numInEdges:"", numOutEdges:"", resource1:"", resource2:"" }]
     this.nodes = nodes || [];
-    //edges=[{ edgeId:"", sourceNode:"", targetNode:""}]
     this.edges = edges || [];
 };
 
@@ -15,26 +13,43 @@ Graph.prototype.deleteGraph = function () {
     this.nodes = [];
     this.edges = [];
 };
-/*
- Graph.prototype.addNode = function(title, resource1, resource2){
- var newNode = {nodeId: this.newNodeId++, title: title, numInEdges:0, numOutEdges:0, resource1:resource1, resource2:resource2 };
- this.nodes.push(newNode);
- };
- */
 
-//!!
-Graph.prototype.addNode = function (title, x, y, nodeId) {
-    var newNode = {};
+Graph.prototype.addNode = function (title, x, y, nodeId, resource1, resource2) {    
     if (nodeId) {
-        newNode = {nodeId: nodeId, title: title, numInEdges: 0, numOutEdges: 0, x: x, y: y};
         if (nodeId > this.newNodeId) {
-            this.newNodeId = ++nodeId;
+            this.newNodeId = nodeId + 1;
         }
     } else {
-        newNode = {nodeId: this.newNodeId++, title: title, numInEdges: 0, numOutEdges: 0, x: x, y: y};
+        nodeId = this.newNodeId++;
     }
+    
+    if (!resource1) {
+        resource1 = {
+            value: 0,
+            startTime: 0,
+            endTime: 0
+        };
+    }
+    if (!resource2) {
+        resource2 = {
+            value: 0,
+            startTime: 0,
+            endTime: 0
+        };
+    }
+    
+    var newNode = {
+        nodeId: nodeId,
+        title: title,
+        numInEdges: 0,
+        numOutEdges: 0,
+        resource1: resource1,
+        resource2: resource2,
+        x: x,
+        y: y
+    };
     this.nodes.push(newNode);
-    //!!
+
     return newNode;
 };
 
@@ -42,8 +57,7 @@ Graph.prototype.addNode = function (title, x, y, nodeId) {
 Graph.prototype.uploadNodes = function (uploadedNodes) {
     var graph = this;
     uploadedNodes.forEach(function (e, i) {
-        graph.addNode(e.title, e.x, e.y, e.nodeId);
-        //console.log(graph.addNode(e.title, e.x, e.y, e.nodeId).toSource());
+        graph.addNode(e.title, e.x, e.y, e.nodeId, e.resource1, e.resource2);
     });
 };
 
@@ -58,7 +72,6 @@ Graph.prototype.uploadEdges = function (uploadedEdges) {
             return n.nodeId === e.targetNode;
         })[0]);
     });
-    //console.log(graph.edges.toSource());
 };
 
 Graph.prototype.changeNodeTitle = function (node, newTitle) {
