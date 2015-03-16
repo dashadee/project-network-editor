@@ -5,6 +5,10 @@ var Graph = function (nodes, edges) {
     this.newEdgeId = 0;
     this.nodes = nodes || [];
     this.edges = edges || [];
+    this.params = {
+        resAmount1: 0,
+        resAmount2: 0
+    };
 };
 
 Graph.prototype.deleteGraph = function () {
@@ -12,6 +16,10 @@ Graph.prototype.deleteGraph = function () {
     this.newEdgeId = 0;
     this.nodes = [];
     this.edges = [];
+    this.params = {
+        resAmount1: 0,
+        resAmount2: 0
+    };
 };
 
 Graph.prototype.addNode = function (title, x, y, nodeId, resource1, resource2) {    
@@ -72,6 +80,13 @@ Graph.prototype.uploadEdges = function (uploadedEdges) {
             return n.nodeId === e.targetNode;
         })[0]);
     });
+};
+
+//recreate params from json object
+Graph.prototype.uploadParams = function (uploadedParams) {
+    var graph = this;
+    graph.params.resAmount1 = uploadedParams.resAmount1;
+    graph.params.resAmount2 = uploadedParams.resAmount2;
 };
 
 Graph.prototype.changeNodeTitle = function (node, newTitle) {

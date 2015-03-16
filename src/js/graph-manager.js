@@ -79,11 +79,9 @@ var GraphManager = function (graphView, graphModel) {
     //!!!
     // handle download data
     d3.select("#download-input").on("click", function () {
-        var saveEdges = [];
-        graphManager.graph.edges.forEach(function (val, i) {
-            saveEdges.push({edgeId: val.edgeId, sourceNode: val.sourceNode.nodeId, targetNode: val.targetNode.nodeId});
-        });
-        var blob = new Blob([window.JSON.stringify({"nodes": graphManager.graph.nodes, "edges": saveEdges})], {type: "text/plain;charset=utf-8"});
+        var builder = new GraphBuilder();
+        var graphJson = builder.buildJsonFromGraph(graphManager.graph);
+        var blob = new Blob([window.JSON.stringify(graphJson)], {type: "text/plain;charset=utf-8"});
         saveAs(blob, "myGraph.json");
     });
 
