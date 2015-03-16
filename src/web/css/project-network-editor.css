@@ -50,6 +50,7 @@ body {
     border-radius: 5px;
     padding: 0.5em;
     z-index: 5;
+    font: 11pt sans-serif;
 }
 
 .box input {
@@ -67,6 +68,14 @@ body {
 
 #download-input {
     margin: 0 0.5em;
+}
+
+.first-res {
+    color: #319fdd;
+}
+
+.second-res {
+    color: #1064bc;
 }
 
 .conceptG text {

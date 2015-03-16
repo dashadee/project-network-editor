@@ -106,7 +106,7 @@ var GraphManager = function (graphView, graphModel) {
     // handle setup graph
     d3.select("#setup-input").on("click", function () {
         var element = document.getElementById("setupbox");
-        element.style.display = (element.style.display == 'none') ? '' : 'none';
+        element.style.display = (element.style.display === "none") ? "" : "none";
     });
 };
 
