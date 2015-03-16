@@ -18,12 +18,12 @@
           <input type="image" id="setup-input" title="setup graph" src="img/gear-icon.png" alt="setup graph">
         </div>
         <div id="setupbox" class="box" style="display: none">
-            <div id="res1-line" class="first-res">Resource 1: <span id="res1-amount">0</span></div>
-            <div id="res2-line" class="second-res">Resource 2: <span id="res2-amount">0</span></div>
+            <div id="res1-line" class="first-res"><strong>Resource 1: <span id="res1-amount">0</span></strong></div>
+            <div id="res2-line" class="second-res"><strong>Resource 2: <span id="res2-amount">0</span></strong></div>
             <br/>
-            <div id="total-time-line">Total time: <span id="total-time">0</span></div>
-            <div id="res1-lost-line">Lost resource 1: <span id="res1-lost">0</span></div>
-            <div id="res2-lost-line">Lost resource 2: <span id="res2-lost">0</span></div>
+            <div id="total-time-line" class="setup-data">Total time: <span id="total-time">0</span></div>
+            <div id="res1-lost-line" class="first-res setup-data">Lost resource 1: <span id="res1-lost">0</span></div>
+            <div id="res2-lost-line" class="second-res setup-data">Lost resource 2: <span id="res2-lost">0</span></div>
             <br/>
             <div id="sequence-number-line">Sequence number:
                 <select id="sequence-select" name="sequences">
@@ -31,10 +31,13 @@
                 </select>
             </div>
             <div id="sequence-table-box" class="setup-data" style="display: none">
-                <table border="1" width="160px">
-                    <tr>
-                        <th>#</th> <th>process</th> <th>id</th>
-                    </tr>
+                <table id="sequence-table" border="1" width="160px">
+                    <thead>
+                        <tr>
+                            <th>#</th> <th>process</th> <th>id</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
                 </table>
             </div>
         </div>

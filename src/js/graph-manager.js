@@ -131,6 +131,10 @@ var GraphManager = function (graphView, graphModel) {
     });
     
     // setup sequence select
+    d3.select("#sequence-select").on("change", function () {
+        var select = document.getElementById("sequence-select");
+        graphManager.selectSequence(select.selectedIndex - 1);
+    });
     this.view.updateSequences(this.graph);
 };
 
@@ -422,4 +426,13 @@ GraphManager.prototype.deleteGraph = function (skipPrompt) {
         this.view.updateParams(this);
         this.updateGraph();
     }
+};
+
+GraphManager.prototype.selectSequence = function(index) {
+    var params = this.graph.params;
+    if (typeof(index) === "undefined" || index < 0 || index >= params.sequences.length) {
+        index = -1;
+    }
+    params.defaultSequence = index;
+    this.view.selectSequence(this, index);
 };

@@ -387,6 +387,36 @@ GraphView.prototype.updateSequences = function(graph) {
     displayElement("sequence-table-box", "none");
 }
 
+GraphView.prototype.updateSequenceTable = function(graph) {
+    var table = document.getElementById("sequence-table");
+    var oldTbody = table.tBodies[0];
+    var newTbody = document.createElement("tbody");
+    
+    if (graph.params.defaultSequence >= 0) {
+        var sequence = graph.params.sequences[graph.params.defaultSequence];
+
+        var nodeIdToNode = [];
+        for (var i = 0; i < graph.nodes.length; ++i) {
+            nodeIdToNode[graph.nodes[i].nodeId] = graph.nodes[i];
+        }
+
+        for (var i = 0; i < sequence.seq.length; ++i) {
+            var node = nodeIdToNode[sequence.seq[i].nodeId];
+            var row = newTbody.insertRow(i);
+
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            var cell3 = row.insertCell(2);
+
+            cell1.innerHTML = String(i + 1);
+            cell2.innerHTML = node.title;
+            cell3.innerHTML = String(node.nodeId);
+        }
+    }
+    
+    oldTbody.parentNode.replaceChild(newTbody, oldTbody);
+}
+
 GraphView.prototype.updateResAmounts = function(graph) {
     document.getElementById("res1-amount").innerHTML = graph.params.resAmount1;
     document.getElementById("res2-amount").innerHTML = graph.params.resAmount2;
@@ -396,4 +426,10 @@ GraphView.prototype.updateParams = function(graphManager) {
     var graph = graphManager.graph;
     this.updateResAmounts(graph);
     this.updateSequences(graph);
+}
+
+GraphView.prototype.selectSequence = function(graphManager, index) {
+    document.getElementById("sequence-select").selectedIndex = index + 1;
+    this.updateSequenceTable(graphManager.graph);
+    displayElement("sequence-table-box", index < 0 ? "none" : "");
 }
