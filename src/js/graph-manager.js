@@ -108,6 +108,29 @@ var GraphManager = function (graphView, graphModel) {
         var element = document.getElementById("setupbox");
         element.style.display = (element.style.display === "none") ? "" : "none";
     });
+    
+    function resClick(elementId) {
+        var element = document.getElementById(elementId);
+        d3.event.stopPropagation();
+            
+        if (d3.event.button == 0) {
+            var editedText = prompt("Enter new value:", element.innerHTML);
+            if (editedText != null && !isNaN(parseFloat(editedText)) && isFinite(editedText)) {
+                element.innerHTML = editedText;
+//                value = parseFloat(editedText);
+//                recalcResRects(d);
+            }
+        }
+    }
+    
+    // handle change resource amount
+    d3.select("#res1-amount").on("dblclick", function () {
+        resClick("res1-amount");
+    });
+    d3.select("#res2-amount").on("dblclick", function () {
+        resClick("res2-amount");
+    });
+    
 };
 
 /* PROTOTYPE FUNCTIONS */

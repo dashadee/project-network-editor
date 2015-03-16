@@ -1,6 +1,5 @@
 /* Data Model of the Graph */
 var Graph = function (nodes, edges) {
-
     this.newNodeId = 0;
     this.newEdgeId = 0;
     this.nodes = nodes || [];
