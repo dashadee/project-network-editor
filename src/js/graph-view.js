@@ -192,6 +192,7 @@ GraphView.prototype.addNewKnots = function (graphManager) {
     );
 
     newGs.each(function (d) {
+        graphView.recalcResRects(d);
         graphView.insertTitleLinebreaks(d3.select(this), d.title);
     });
 
@@ -200,10 +201,9 @@ GraphView.prototype.addNewKnots = function (graphManager) {
 };
 
 GraphView.prototype.addKnotResources = function (resGroup) {
-    
     var consts = this.consts;
     
-    function addResource(number, resGroup, resWidth, resHeight, styleStr) {
+    function addResource(number, resGroup, resValue, resWidth, resHeight, styleStr) {
         var resTop = resHeight * (number - 1);
         
         resGroup.append("rect")
@@ -251,28 +251,6 @@ GraphView.prototype.addKnotResources = function (resGroup) {
         };
     }
     
-    function recalcResRects(data) {
-        var value1 = data.resource1.value;
-        var value2 = data.resource2.value;
-        var width1 = value1 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
-        var width2 = value2 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
-
-        if (value1 > consts.epsilone && value2 > consts.epsilone) {
-            if (value1 > value2) {
-                width1 = consts.maxResWidth;
-                width2 = Math.max(value2 / value1 * consts.maxResWidth, consts.minResWidth);
-            } else if (value1 < value2) {
-                width2 = consts.maxResWidth;
-                width1 = Math.max(value1 / value2 * consts.maxResWidth, consts.minResWidth);
-            }
-        }
-        d3.select("#resRect" + data.nodeId + "-1").attr("width", String(width1));
-        d3.select("#resText" + data.nodeId + "-1").attr("x", String(width1 / 2));
-
-        d3.select("#resRect" + data.nodeId + "-2").attr("width", String(width2));
-        d3.select("#resText" + data.nodeId + "-2").attr("x", String(width2 / 2));
-    }
-
     resGroup.append("rect")
         .attr("width", String(consts.nodeWidth))
         .attr("height", String(consts.nodeHeight / 2.5));
@@ -281,14 +259,38 @@ GraphView.prototype.addKnotResources = function (resGroup) {
     var resWidth = consts.minResWidth;
     var resHeight = consts.nodeHeight / 5 - 1;
     
-    addResource(1, resGroup.append("g"), resWidth, resHeight,
+    addResource(1, resGroup.append("g"), resValue, resWidth, resHeight,
         "fill: #319fdd; stroke-width: 0");
-
-    addResource(2, resGroup.append("g"), resWidth, resHeight,
+    addResource(2, resGroup.append("g"), resValue, resWidth, resHeight,
         "fill: #1064bc; stroke-width: 0");
-    
 }
 
+GraphView.prototype.recalcResRects = function(data) {
+    var consts = this.consts;
+    
+    var value1 = data.resource1.value;
+    var value2 = data.resource2.value;
+    var width1 = value1 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
+    var width2 = value2 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
+
+    if (value1 > consts.epsilone && value2 > consts.epsilone) {
+        if (value1 > value2) {
+            width1 = consts.maxResWidth;
+            width2 = Math.max(value2 / value1 * consts.maxResWidth, consts.minResWidth);
+        } else if (value1 < value2) {
+            width2 = consts.maxResWidth;
+            width1 = Math.max(value1 / value2 * consts.maxResWidth, consts.minResWidth);
+        }
+    }
+    d3.select("#resRect" + data.nodeId + "-1").attr("width", String(width1));
+    d3.select("#resText" + data.nodeId + "-1").attr("x", String(width1 / 2));
+    d3.select("#resText" + data.nodeId + "-1").select("tspan").text(String(value1));
+
+    d3.select("#resRect" + data.nodeId + "-2").attr("width", String(width2));
+    d3.select("#resText" + data.nodeId + "-2").attr("x", String(width2 / 2));
+    d3.select("#resText" + data.nodeId + "-2").select("tspan").text(String(value2));
+};
+    
 /* insert svg line breaks: taken from http://stackoverflow.com/questions/13241475/how-do-i-include-newlines-in-labels-in-d3-charts */
 GraphView.prototype.insertTitleLinebreaks = function (gEl, title) {
     var words = title.split(/\s+/g);
@@ -371,3 +373,27 @@ GraphView.prototype.changeTextOfNode = function (d3node, d) {
             });
     return d3txt;
 };
+
+GraphView.prototype.updateSequences = function(graph) {
+    var element = document.getElementById("sequence-select");
+    var sequences = graph.params.sequences;
+    
+    element.options[0] = new Option("--", "none", true, false);
+    for (var i = 0; i < sequences.length; ++i) {
+        element.options[i + 1] = new Option(String(i + 1), String(i), false, false);
+    }
+    element.options.length = sequences.length + 1;
+    
+    displayElement("sequence-table-box", "none");
+}
+
+GraphView.prototype.updateResAmounts = function(graph) {
+    document.getElementById("res1-amount").innerHTML = graph.params.resAmount1;
+    document.getElementById("res2-amount").innerHTML = graph.params.resAmount2;
+}
+
+GraphView.prototype.updateParams = function(graphManager) {
+    var graph = graphManager.graph;
+    this.updateResAmounts(graph);
+    this.updateSequences(graph);
+}

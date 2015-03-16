@@ -105,11 +105,10 @@ var GraphManager = function (graphView, graphModel) {
     
     // handle setup graph
     d3.select("#setup-input").on("click", function () {
-        var element = document.getElementById("setupbox");
-        element.style.display = (element.style.display === "none") ? "" : "none";
+        displayElement("setupbox");
     });
     
-    function resClick(elementId) {
+    function resClick(elementId, paramFieldName) {
         var element = document.getElementById(elementId);
         d3.event.stopPropagation();
             
@@ -117,7 +116,7 @@ var GraphManager = function (graphView, graphModel) {
             var editedText = prompt("Enter new value:", element.innerHTML);
             if (editedText != null && !isNaN(parseFloat(editedText)) && isFinite(editedText)) {
                 element.innerHTML = editedText;
-//                value = parseFloat(editedText);
+                graphManager.graph.params[paramFieldName] = parseFloat(editedText);
 //                recalcResRects(d);
             }
         }
@@ -125,12 +124,14 @@ var GraphManager = function (graphView, graphModel) {
     
     // handle change resource amount
     d3.select("#res1-amount").on("dblclick", function () {
-        resClick("res1-amount");
+        resClick("res1-amount", "resAmount1");
     });
     d3.select("#res2-amount").on("dblclick", function () {
-        resClick("res2-amount");
+        resClick("res2-amount", "resAmount2");
     });
     
+    // setup sequence select
+    this.view.updateSequences(this.graph);
 };
 
 /* PROTOTYPE FUNCTIONS */
@@ -152,6 +153,7 @@ GraphManager.prototype.uploadGraph = function(element) {
                 
                 var builder = new GraphBuilder();
                 graphManager.graph = builder.buildGraphFromJson(jsonObj);
+                graphManager.view.updateParams(graphManager);
                 graphManager.updateGraph();
             } catch (err) {
                 window.alert("Error parsing uploaded file\nerror message: " + err.message);
@@ -417,6 +419,7 @@ GraphManager.prototype.deleteGraph = function (skipPrompt) {
     }
     if (doDelete) {
         this.graph.deleteGraph();
+        this.view.updateParams(this);
         this.updateGraph();
     }
 };

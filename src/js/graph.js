@@ -1,12 +1,14 @@
 /* Data Model of the Graph */
-var Graph = function (nodes, edges) {
+var Graph = function (nodes, edges, params) {
     this.newNodeId = 0;
     this.newEdgeId = 0;
     this.nodes = nodes || [];
     this.edges = edges || [];
-    this.params = {
+    this.params = params || {
         resAmount1: 0,
-        resAmount2: 0
+        resAmount2: 0,
+        defaultSequence: -1,
+        sequences: []
     };
 };
 
@@ -17,7 +19,9 @@ Graph.prototype.deleteGraph = function () {
     this.edges = [];
     this.params = {
         resAmount1: 0,
-        resAmount2: 0
+        resAmount2: 0,
+        defaultSequence: -1,
+        sequences: []
     };
 };
 
@@ -84,8 +88,7 @@ Graph.prototype.uploadEdges = function (uploadedEdges) {
 //recreate params from json object
 Graph.prototype.uploadParams = function (uploadedParams) {
     var graph = this;
-    graph.params.resAmount1 = uploadedParams.resAmount1;
-    graph.params.resAmount2 = uploadedParams.resAmount2;
+    graph.params = uploadedParams;
 };
 
 Graph.prototype.changeNodeTitle = function (node, newTitle) {
