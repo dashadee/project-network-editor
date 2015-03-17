@@ -489,16 +489,20 @@ GraphView.prototype.updateSequenceTable = function(graph) {
         }
 
         for (var i = 0; i < sequence.seq.length; ++i) {
-            var node = nodeIdToNode[sequence.seq[i].nodeId];
+            var item = sequence.seq[i];
+            var node = nodeIdToNode[item.nodeId];
             var row = newTbody.insertRow(i);
 
             var cell1 = row.insertCell(0);
             var cell2 = row.insertCell(1);
             var cell3 = row.insertCell(2);
+            
+            var time = Math.max(item.resource1.endTime, item.resource2.endTime) -
+                    Math.min(item.resource1.startTime, item.resource2.startTime);
 
             cell1.innerHTML = String(i + 1);
             cell2.innerHTML = node.title;
-            cell3.innerHTML = String(node.nodeId);
+            cell3.innerHTML = String(time);
         }
     }
     
