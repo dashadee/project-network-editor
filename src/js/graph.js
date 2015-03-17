@@ -25,9 +25,9 @@ Graph.prototype.deleteGraph = function () {
     };
 };
 
-Graph.prototype.addNode = function (title, x, y, nodeId, resource1, resource2) {    
+Graph.prototype.addNode = function (title, x, y, nodeId, resource1, resource2) {
     if (nodeId) {
-        if (nodeId > this.newNodeId) {
+        if (nodeId >= this.newNodeId) {
             this.newNodeId = nodeId + 1;
         }
     } else {

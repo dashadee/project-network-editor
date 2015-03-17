@@ -6,17 +6,7 @@ var GraphManager = function (graphView, graphModel) {
     this.view = graphView;
     this.graph = graphModel;
 
-    this.state = {
-        selectedNode: null,
-        selectedEdge: null,
-        mouseDownNode: null,
-        mouseDownEdge: null,
-        isDragged: false,
-        isScaled: false,
-        lastKeyDown: -1,
-        isShiftNodeDrag: false,
-        graphMouseDown: false
-    };
+    graphManager.clearState();
 
     this.drag = d3.behavior.drag()
             .origin(function (d) {
@@ -140,6 +130,20 @@ var GraphManager = function (graphView, graphModel) {
 
 /* PROTOTYPE FUNCTIONS */
 
+GraphManager.prototype.clearState = function() {
+    this.state = {
+        selectedNode: null,
+        selectedEdge: null,
+        mouseDownNode: null,
+        mouseDownEdge: null,
+        isDragged: false,
+        isScaled: false,
+        lastKeyDown: -1,
+        isShiftNodeDrag: false,
+        graphMouseDown: false
+    }
+};
+
 // upload graph data
 GraphManager.prototype.uploadGraph = function(element) {
     var graphManager = this;
@@ -154,6 +158,7 @@ GraphManager.prototype.uploadGraph = function(element) {
             try {
                 var jsonObj = JSON.parse(txtRes);
                 graphManager.deleteGraph(true);
+                graphManager.clearState();
                 
                 var builder = new GraphBuilder();
                 graphManager.graph = builder.buildGraphFromJson(jsonObj);

@@ -201,6 +201,7 @@ GraphView.prototype.addNewKnots = function (graphManager) {
 };
 
 GraphView.prototype.addKnotResources = function (resGroup) {
+    var graphView = this;
     var consts = this.consts;
     
     function addResource(number, resGroup, resValue, resWidth, resHeight, styleStr) {
@@ -234,6 +235,32 @@ GraphView.prototype.addKnotResources = function (resGroup) {
             .on("mouseup", function (d) {
                 d3.event.stopPropagation();
             });
+            
+        var startTimeTextNode = resGroup.append("text").classed(consts.textResClass, true)
+            .attr("id", function (d) {
+                return "startTimeResText" + d.nodeId + "-" + number;
+            })
+            .attr("x", String(-2))
+            .attr("y", String(resTop))
+            .attr("dy", "1em")
+            .attr("fill", "black")
+            .attr("text-anchor", "end")
+            .append("tspan");
+        startTimeTextNode.text(String(resValue));
+        
+        var endTimeTextNode = resGroup.append("text").classed(consts.textResClass, true)
+            .attr("id", function (d) {
+                return "endTimeResText" + d.nodeId + "-" + number;
+            })
+            .attr("visibility", "hidden")
+            .attr("x", String(resWidth + 4))
+            .attr("y", String(resTop))
+            .attr("dy", "1em")
+            .attr("fill", "black")
+            .attr("text-anchor", "start")
+            .append("tspan");
+        endTimeTextNode.text(String(resValue));
+
     }
     
     function editText(number, textNode, objectName, fieldName) {
@@ -245,7 +272,7 @@ GraphView.prototype.addKnotResources = function (resGroup) {
                 if (editedText != null && !isNaN(parseFloat(editedText)) && isFinite(editedText)) {
                     textNode.text(editedText);
                     d[objectName][fieldName] = parseFloat(editedText);
-                    recalcResRects(d);
+                    graphView.recalcResRects(d);
                 }
             }
         };
@@ -269,26 +296,87 @@ GraphView.prototype.recalcResRects = function(data) {
     var consts = this.consts;
     
     var value1 = data.resource1.value;
+    var startTime1 = data.resource1.startTime;
+    var endTime1 = data.resource1.endTime;
+    
     var value2 = data.resource2.value;
+    var startTime2 = data.resource2.startTime;
+    var endTime2 = data.resource2.endTime;
+    
+    var shift1 = 0;
     var width1 = value1 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
+    
+    var shift2 = 0;
     var width2 = value2 > consts.epsilone ? consts.maxResWidth : consts.minResWidth;
 
-    if (value1 > consts.epsilone && value2 > consts.epsilone) {
-        if (value1 > value2) {
-            width1 = consts.maxResWidth;
-            width2 = Math.max(value2 / value1 * consts.maxResWidth, consts.minResWidth);
-        } else if (value1 < value2) {
+    if (startTime1 === endTime1 && startTime2 === endTime2) {
+        if (value1 > consts.epsilone && value2 > consts.epsilone) {
+            if (value1 > value2) {
+                width1 = consts.maxResWidth;
+                width2 = Math.max(value2 / value1 * consts.maxResWidth, consts.minResWidth);
+            } else if (value1 < value2) {
+                width2 = consts.maxResWidth;
+                width1 = Math.max(value1 / value2 * consts.maxResWidth, consts.minResWidth);
+            }
+        }
+    } else {
+        if (startTime1 === endTime1) {
+            width1 = consts.minResWidth;
             width2 = consts.maxResWidth;
-            width1 = Math.max(value1 / value2 * consts.maxResWidth, consts.minResWidth);
+        } else if (startTime2 === endTime2) {
+            width1 = consts.maxResWidth;
+            width2 = consts.minResWidth;
+        } else {
+            var startTime = Math.min(startTime1, startTime2);
+            var endTime = Math.max(endTime1, endTime2);
+            var delta = endTime - startTime;
+            var delta1 = endTime1 - startTime1;
+            var delta2 = endTime2 - startTime2;
+            
+            width1 = Math.max(delta1 * consts.maxResWidth / delta, consts.minResWidth);
+            width2 = Math.max(delta2 * consts.maxResWidth / delta, consts.minResWidth);
+            shift1 = (startTime1 - startTime) * consts.maxResWidth / delta;
+            shift2 = (startTime2 - startTime) * consts.maxResWidth / delta;
         }
     }
+    
     d3.select("#resRect" + data.nodeId + "-1").attr("width", String(width1));
-    d3.select("#resText" + data.nodeId + "-1").attr("x", String(width1 / 2));
+    d3.select("#resRect" + data.nodeId + "-1").attr("x", String(shift1));
+    d3.select("#resText" + data.nodeId + "-1").attr("x", String(shift1 + width1 / 2));
     d3.select("#resText" + data.nodeId + "-1").select("tspan").text(String(value1));
-
+    
+    var startTimeResText = d3.select("#startTimeResText" + data.nodeId + "-1");
+    var endTimeResText = d3.select("#endTimeResText" + data.nodeId + "-1");
+    if (value1 === 0 || startTime1 === endTime1) {
+        startTimeResText.attr("visibility", "hidden");
+        endTimeResText.attr("visibility", "hidden");
+    } else {
+        startTimeResText.attr("visibility", "visible");
+        endTimeResText.attr("visibility", "visible");
+        startTimeResText.select("tspan").text(String(startTime1));
+        startTimeResText.attr("x", String(shift1 - 4));
+        endTimeResText.select("tspan").text(String(endTime1));
+        endTimeResText.attr("x", String(shift1 + width1 + 4));
+    }
+    
     d3.select("#resRect" + data.nodeId + "-2").attr("width", String(width2));
-    d3.select("#resText" + data.nodeId + "-2").attr("x", String(width2 / 2));
+    d3.select("#resRect" + data.nodeId + "-2").attr("x", String(shift2));
+    d3.select("#resText" + data.nodeId + "-2").attr("x", String(shift2 + width2 / 2));
     d3.select("#resText" + data.nodeId + "-2").select("tspan").text(String(value2));
+    
+    startTimeResText = d3.select("#startTimeResText" + data.nodeId + "-2");
+    endTimeResText = d3.select("#endTimeResText" + data.nodeId + "-2");
+    if (value2 === 0 || startTime2 === endTime2) {
+        startTimeResText.attr("visibility", "hidden");
+        endTimeResText.attr("visibility", "hidden");
+    } else {
+        startTimeResText.attr("visibility", "visible");
+        endTimeResText.attr("visibility", "visible");
+        startTimeResText.select("tspan").text(String(startTime2));
+        startTimeResText.attr("x", String(shift2 - 4));
+        endTimeResText.select("tspan").text(String(endTime2));
+        endTimeResText.attr("x", String(shift2 + width2 + 4));
+    }
 };
     
 /* insert svg line breaks: taken from http://stackoverflow.com/questions/13241475/how-do-i-include-newlines-in-labels-in-d3-charts */
