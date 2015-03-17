@@ -476,6 +476,19 @@ GraphView.prototype.updateSequences = function(graph) {
     displayElement("sequence-table-box", "none");
 }
 
+GraphView.prototype.updateSequenceParams = function(graph) {
+    var sequence = graph.params.sequences[graph.params.defaultSequence];
+    var totalTime = 0, lostRes1 = 0, lostRes2 = 0;
+    if (sequence) {
+        totalTime = sequence.totalTime;
+        lostRes1 = sequence.lostRes1;
+        lostRes2 = sequence.lostRes2;
+    }
+    document.getElementById("total-time").innerHTML = totalTime;
+    document.getElementById("res1-lost").innerHTML = lostRes1;
+    document.getElementById("res2-lost").innerHTML = lostRes2;
+}
+
 GraphView.prototype.updateSequenceTable = function(graph) {
     var table = document.getElementById("sequence-table");
     var oldTbody = table.tBodies[0];
@@ -525,6 +538,7 @@ GraphView.prototype.updateParams = function(graphManager) {
 
 GraphView.prototype.selectSequence = function(graphManager, index) {
     document.getElementById("sequence-select").selectedIndex = index + 1;
+    this.updateSequenceParams(graphManager.graph);
     this.updateSequenceTable(graphManager.graph);
     displayElement("sequence-table-box", index < 0 ? "none" : "");
 }
