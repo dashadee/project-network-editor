@@ -438,6 +438,6 @@ GraphManager.prototype.selectSequence = function(index) {
     if (typeof(index) === "undefined" || index < 0 || index >= params.sequences.length) {
         index = -1;
     }
-    params.defaultSequence = index;
+    this.graph.setupSequenceData(index);
     this.view.selectSequence(this, index);
 };

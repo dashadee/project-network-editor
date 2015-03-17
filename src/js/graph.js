@@ -147,5 +147,23 @@ Graph.prototype.deleteEdge = function (edgeToDelete) {
     edgeToDelete.targetNode.numInEdges--;
     //delete l edge
     graph.edges.splice(graph.edges.indexOf(edgeToDelete), 1);
+};
 
+Graph.prototype.setupSequenceData = function (index) {
+    var graph = this;
+    graph.params.defaultSequence = index;
+    if (index >= 0) {
+        var nodeIdToNode = [];
+        for (var i = 0; i < graph.nodes.length; ++i) {
+            nodeIdToNode[graph.nodes[i].nodeId] = graph.nodes[i];
+        }
+        
+        var sequence = graph.params.sequences[index];
+        for (var i = 0; i < sequence.seq.length; ++i) {
+            var item = sequence.seq[i];
+            var node = nodeIdToNode[item.nodeId];
+            node.resource1 = item.resource1;
+            node.resource2 = item.resource2;
+        }
+    }
 };

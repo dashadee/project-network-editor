@@ -153,6 +153,7 @@ GraphView.prototype.updateKnots = function (nodes) {
         return "translate(" + (d.x - consts.nodeWidth / 2) + "," + (d.y - consts.nodeHeight / 2) + ")";
     });
 };
+
 GraphView.prototype.addNewKnots = function (graphManager) {
 
     //TODO: refactor - minimize
@@ -503,6 +504,8 @@ GraphView.prototype.updateSequenceTable = function(graph) {
             cell1.innerHTML = String(i + 1);
             cell2.innerHTML = node.title;
             cell3.innerHTML = String(time);
+            
+            this.recalcResRects(node);
         }
     }
     
